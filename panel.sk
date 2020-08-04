@@ -1,0 +1,59 @@
+command /panel:
+  permission: panel.use
+  trigger:
+    open virtual chest inventory with size 3 to player
+    format gui slot 9 of player with paper named "Clear Chat" with lore "Clears chat for all players" to run:
+      clearChat()
+    format gui slot 10 of player with paper named "Mute Chat" with lore "Mutes everyone temporarily" to run:
+      muteChat()
+    format gui slot 11 of player with paper named "Unmute Chat" with lore "Unmutes the chat" to run:
+      unmuteChat()
+    format gui slot 12 of player with paper named "Allow PVP" with lore "Allows PVP in world guard global region" to close then run player command "/rg flag __global__ allow"
+    format gui slot 13 of player with paper named "Deny PVP" with lore "Denys PVP in world guard global region" to close then run player command "/rg flag __global__ deny"
+    format gui slot 14 of player with paper named "Toggle Freeze All" with lore "Freezes all non staff players" to run:
+      freezeAll()
+    format gui slot 15 of player with paper named "Whitelist On" with lore "Turns on whitelist" to close then run player command "/whitelist on"
+    format gui slot 16 of player with paper named "Whitelist Off" with lore "Turns off whitelist" to close then run player command "/whitelist off"
+    format gui slot 17 of player with paper named "Kick All" with lore "Kicks all non staff" to run:
+      kickAll()
+
+function clearChat():
+  loop 150 times:
+    broadcast ""
+  broadcast "&cThe chat has been cleared!"
+    
+function muteChat():
+  set {chat.ismuted} to 1
+  broadcast "&c&lThe chat has been muted."
+
+on chat:
+  if {chat.ismuted} is 1:
+    if player doesn't have permission "mutechat.bypass":
+      cancel event
+      send "&cChat is currently muted!" to player
+      
+function unmuteChat():
+  set {chat.ismuted} to 0
+  broadcast "&c&lThe chat has been unmuted!"
+  
+function kickAll():
+  loop all players:
+    if loop-player doesn't have permission "kickall.bypass":
+      kick loop-player
+
+function freezeAll():
+  if {players.arefrozen} is 1:
+    set {players.arefrozen} to 0
+    broadcast "&c&lAll players have been unfrozen!"
+  else:   
+    set {players.arefrozen} to 1
+    broadcast "&c&lAll players have been frozen!"
+    loop all players:
+      set {freezepos.%loop-player%} to location of loop-player
+  
+every 2 ticks:
+  if {players.arefrozen} is 1:
+    loop all players:
+      if loop-player doesn't have permission "freezeall.bypass":
+        teleport the loop-player to {freezepos.%loop-player%}
+    
